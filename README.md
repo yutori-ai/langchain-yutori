@@ -10,6 +10,7 @@ pip install langchain-yutori
 
 This package is implemented as a standalone LangChain integration package. It uses the official `yutori`
 Python SDK for Browsing, Research, and Scouts, and wraps n1 as a LangChain chat model.
+Installing `langchain-yutori` also installs the `yutori` Python package, which includes the `yutori` CLI.
 
 ## Components
 
@@ -22,7 +23,15 @@ Python SDK for Browsing, Research, and Scouts, and wraps n1 as a LangChain chat 
 
 ## Authentication
 
-Set your API key via environment variable:
+Recommended:
+
+```bash
+yutori auth login
+```
+
+This opens your browser and saves your API key locally for the SDK and this package to use.
+
+Or set your API key via environment variable:
 
 ```bash
 export YUTORI_API_KEY="yt-..."
