@@ -27,7 +27,7 @@ def test_chat_model_image_action_smoke():
         content=[
             {
                 "type": "image_url",
-                "image_url": {"url": "https://image.thum.io/get/width/1280/noanimate/https://www.google.com"},
+                "image_url": {"url": "https://docs.yutori.com/assets/google_homepage_2024.jpg"},
             },
             {
                 "type": "text",
