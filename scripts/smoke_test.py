@@ -3,12 +3,23 @@ from __future__ import annotations
 import argparse
 import json
 
+from langchain_core.messages import HumanMessage
+
 from langchain_yutori import ChatYutoriN1, YutoriBrowsingTool, YutoriResearchTool, YutoriScoutingTool
 
 
 def run_chat_smoke() -> None:
-    message = ChatYutoriN1().invoke("Say hello in one word.")
-    print("chat:", message.content)
+    message = HumanMessage(
+        content=[
+            {
+                "type": "image_url",
+                "image_url": {"url": "https://docs.yutori.com/assets/google_homepage_2024.jpg"},
+            },
+            {"type": "text", "text": "Briefly describe what page this is."},
+        ]
+    )
+    response = ChatYutoriN1().invoke([message])
+    print("chat:", response.content)
 
 
 def run_browsing_smoke() -> None:

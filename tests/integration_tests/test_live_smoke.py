@@ -18,8 +18,17 @@ def check_api_key():
 
 
 def test_chat_model_smoke():
-    message = ChatYutoriN1().invoke("Say hello in one word.")
-    assert message.content
+    message = HumanMessage(
+        content=[
+            {
+                "type": "image_url",
+                "image_url": {"url": "https://docs.yutori.com/assets/google_homepage_2024.jpg"},
+            },
+            {"type": "text", "text": "Briefly describe what page this is."},
+        ]
+    )
+    response = ChatYutoriN1().invoke([message])
+    assert response.content
 
 
 def test_chat_model_image_action_smoke():
