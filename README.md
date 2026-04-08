@@ -10,7 +10,7 @@ pip install langchain-yutori
 
 This package is implemented as a standalone LangChain integration package. It uses the official `yutori`
 Python SDK for Browsing, Research, and Scouts, and wraps n1 as a LangChain chat model.
-Installing `langchain-yutori` also installs the `yutori` Python package, which includes the `yutori` CLI.
+Installing `langchain-yutori` also installs the `yutori` Python package, plus the `yutori` CLI.
 
 ## Components
 
@@ -49,25 +49,35 @@ n1 is Yutori's pixels-to-actions LLM for browser navigation. It accepts screensh
 
 ```python
 from langchain_yutori import ChatYutoriN1
+from langchain_core.messages import HumanMessage
+from yutori.n1 import aplaywright_screenshot_to_data_url
 
 llm = ChatYutoriN1()  # uses YUTORI_API_KEY env var
-
-# Use as a drop-in for ChatOpenAI
-response = llm.invoke("Describe what you see on this page.")
-print(response.content)
-```
-
-With a screenshot (base64 WebP, 1280×800 recommended):
-
-```python
-from langchain_core.messages import HumanMessage
+image_url = await aplaywright_screenshot_to_data_url(page)
 
 message = HumanMessage(content=[
-    {"type": "image_url", "image_url": {"url": "data:image/webp;base64,<base64-encoded-screenshot>"}},
+    {"type": "image_url", "image_url": {"url": image_url}},
     {"type": "text", "text": "What is the next action to complete the task: 'Add item to cart'?"},
 ])
 response = llm.invoke([message])
 # Returns tool_calls with browser actions
+```
+
+With Playwright, use the SDK helper so the image is captured with the SDK's default JPEG capture
+settings and encoded to a WebP data URL optimized for n1.
+
+`ChatYutoriN1` accepts image URLs but does not capture or preprocess screenshots itself, so if you
+are using Playwright you should call the SDK helper directly before passing the image into LangChain.
+
+If you execute returned browser actions yourself, n1 coordinates are normalized to a `1000x1000`
+space. Convert them back into viewport pixels with the SDK helper:
+
+```python
+from yutori.n1 import denormalize_coordinates
+
+coords = [500, 250]
+x, y = denormalize_coordinates(coords, width=1280, height=800)
+await page.mouse.click(x, y)
 ```
 
 For the full n1 input requirements and action schema, see the Yutori docs: https://docs.yutori.com

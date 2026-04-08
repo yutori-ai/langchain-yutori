@@ -12,8 +12,8 @@ class ChatYutoriN1(ChatOpenAI):
 
     n1 is a pixels-to-actions LLM that processes screenshots and predicts
     browser actions (click, type, scroll, etc.). It uses the OpenAI Chat
-    Completions interface, making it a drop-in replacement for any LangChain
-    workflow that uses ``ChatOpenAI``.
+    Completions interface, so it plugs into LangChain's OpenAI-compatible
+    chat model stack.
 
     Authentication uses the ``YUTORI_API_KEY`` environment variable or the
     ``api_key`` constructor argument.
@@ -21,16 +21,14 @@ class ChatYutoriN1(ChatOpenAI):
     Example::
 
         from langchain_yutori import ChatYutoriN1
+        from langchain_core.messages import HumanMessage
+        from yutori.n1 import aplaywright_screenshot_to_data_url
 
         llm = ChatYutoriN1(api_key="yt-...")
-        response = llm.invoke("What is on this page?")
-
-    Or with screenshots (base64 image content)::
-
-        from langchain_core.messages import HumanMessage
+        image_url = await aplaywright_screenshot_to_data_url(page)
 
         message = HumanMessage(content=[
-            {"type": "image_url", "image_url": {"url": "data:image/webp;base64,..."}},
+            {"type": "image_url", "image_url": {"url": image_url}},
             {"type": "text", "text": "What action should I take next?"},
         ])
         response = llm.invoke([message])
