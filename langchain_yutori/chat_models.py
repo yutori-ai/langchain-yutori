@@ -59,3 +59,19 @@ class ChatYutoriN1(ChatOpenAI):
             default_headers={"X-API-Key": resolved_key},
             **kwargs,
         )
+
+    def _create_chat_result(
+        self,
+        response: Any,
+        generation_info: dict[str, Any] | None = None,
+    ):
+        result = super()._create_chat_result(response, generation_info)
+        response_dict = response if isinstance(response, dict) else response.model_dump()
+
+        if request_id := response_dict.get("request_id"):
+            result.llm_output = {**(result.llm_output or {}), "request_id": request_id}
+            for generation in result.generations:
+                generation.message.response_metadata["request_id"] = request_id
+                generation.message.additional_kwargs.setdefault("request_id", request_id)
+
+        return result

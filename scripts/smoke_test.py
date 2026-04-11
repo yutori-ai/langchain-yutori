@@ -24,7 +24,7 @@ def run_chat_smoke() -> None:
 
 def run_browsing_smoke() -> None:
     result = YutoriBrowsingTool(timeout=600).invoke(
-        {"task": "What is the page title?", "start_url": "https://yutori.com"}
+        {"task": "What is the page heading?", "start_url": "https://example.com"}
     )
     print("browsing:", json.dumps(json.loads(result), indent=2)[:1000])
 
