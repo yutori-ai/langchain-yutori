@@ -5,8 +5,12 @@ import pytest
 from langchain_core.messages import HumanMessage
 from yutori.exceptions import APIError
 
-from langchain_yutori import ChatYutoriN1, YutoriBrowsingTool, YutoriResearchTool, YutoriScoutingTool
-
+from langchain_yutori import (
+    ChatYutoriN1,
+    YutoriBrowsingTool,
+    YutoriResearchTool,
+    YutoriScoutingTool,
+)
 
 pytestmark = pytest.mark.integration
 
@@ -68,16 +72,18 @@ def test_chat_model_image_action_smoke():
 
 def test_browsing_tool_smoke():
     result = YutoriBrowsingTool(timeout=600).invoke(
-        {"task": "What is the page title?", "start_url": "https://yutori.com"}
+        {"task": "What is the page heading?", "start_url": "https://example.com"}
     )
     data = json.loads(result)
     assert data["status"] == "succeeded"
+    assert "Example Domain" in data["result"]
 
 
 def test_research_tool_smoke():
     result = YutoriResearchTool(timeout=900).invoke({"query": "What does Yutori do?"})
     data = json.loads(result)
     assert data["status"] == "succeeded"
+    assert "Yutori" in data["result"]
 
 
 def test_scouting_tool_lifecycle_smoke():
