@@ -12,7 +12,6 @@ from pydantic import BaseModel, Field
 from yutori import AsyncYutoriClient, YutoriClient
 from yutori.auth.credentials import resolve_api_key
 
-
 _MIN_POLL_INTERVAL = 60.0
 _DEFAULT_POLL_INTERVAL = 60.0  # seconds between status polls
 _DEFAULT_TIMEOUT = 1200.0  # maximum seconds to wait for task completion (tasks take 5–15 min)

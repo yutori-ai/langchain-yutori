@@ -1,0 +1,37 @@
+name: Live Smokes
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 13 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-smokes
+  cancel-in-progress: false
+
+jobs:
+  integration:
+    if: ${{ secrets.YUTORI_API_KEY != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      YUTORI_API_KEY: ${{ secrets.YUTORI_API_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run live integration smoke tests
+        run: uv run pytest -m integration -q

@@ -1,5 +1,6 @@
-from langchain_yutori import ChatYutoriN1, YutoriBrowsingTool, YutoriResearchTool, YutoriScoutingTool
 import pytest
+
+from langchain_yutori import ChatYutoriN1, YutoriBrowsingTool, YutoriResearchTool, YutoriScoutingTool
 
 
 def test_chat_model_uses_sdk_auth_resolution(monkeypatch):
