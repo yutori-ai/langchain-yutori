@@ -5,7 +5,7 @@ LangChain integration for the [Yutori API](https://docs.yutori.com) — n1 brows
 ## Installation
 
 ```bash
-pip install langchain-yutori
+pip install langchain langchain-yutori
 ```
 
 This package is implemented as a standalone LangChain integration package. It uses the official `yutori`

@@ -1,6 +1,11 @@
-from langchain_tests.unit_tests import ToolsUnitTests
+import pytest
 
 from langchain_yutori import YutoriBrowsingTool, YutoriResearchTool, YutoriScoutingTool
+
+try:
+    from langchain_tests.unit_tests import ToolsUnitTests
+except ImportError:
+    pytest.skip("langchain-tests is not installed in this environment", allow_module_level=True)
 
 
 class TestYutoriBrowsingToolStandard(ToolsUnitTests):

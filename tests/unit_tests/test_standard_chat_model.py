@@ -1,6 +1,11 @@
-from langchain_tests.unit_tests import ChatModelUnitTests
+import pytest
 
 from langchain_yutori import ChatYutoriN1
+
+try:
+    from langchain_tests.unit_tests import ChatModelUnitTests
+except ImportError:
+    pytest.skip("langchain-tests is not installed in this environment", allow_module_level=True)
 
 
 class TestChatYutoriN1Standard(ChatModelUnitTests):
