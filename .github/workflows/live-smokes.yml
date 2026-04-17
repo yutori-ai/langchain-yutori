@@ -14,7 +14,6 @@ concurrency:
 
 jobs:
   integration:
-    if: ${{ secrets.YUTORI_API_KEY != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -32,6 +31,13 @@ jobs:
 
       - name: Install dependencies
         run: uv sync --extra dev
+
+      - name: Verify live smoke secret is configured
+        run: |
+          if [ -z "$YUTORI_API_KEY" ]; then
+            echo "YUTORI_API_KEY secret is not configured for this repository."
+            exit 1
+          fi
 
       - name: Run live integration smoke tests
         run: uv run pytest -m integration -q
