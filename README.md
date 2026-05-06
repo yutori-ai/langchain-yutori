@@ -1,6 +1,6 @@
 # langchain-yutori
 
-LangChain integration for the [Yutori API](https://docs.yutori.com) — n1 browser control, browser automation, deep research, and recurring web monitors.
+LangChain integration for the [Yutori API](https://docs.yutori.com) — Navigator browser control, browser automation, deep research, and recurring web monitors.
 
 ## Installation
 
@@ -9,14 +9,14 @@ pip install langchain langchain-yutori
 ```
 
 This package is implemented as a standalone LangChain integration package. It uses the official `yutori`
-Python SDK for Browsing, Research, and Scouts, and wraps n1 as a LangChain chat model.
+Python SDK for Browsing, Research, and Scouts, and wraps Navigator as a LangChain chat model.
 Installing `langchain-yutori` also installs the `yutori` Python package, plus the `yutori` CLI.
 
 ## Components
 
 | Class | Type | Description |
 |---|---|---|
-| `ChatYutoriN1` | `ChatModel` | Yutori n1 browser navigation model (OpenAI-compatible) |
+| `ChatYutoriNavigator` | `ChatModel` | Yutori Navigator browser-control model (OpenAI-compatible, defaults to n1.5) |
 | `YutoriBrowsingTool` | `BaseTool` | Execute web browsing tasks on a remote browser |
 | `YutoriResearchTool` | `BaseTool` | Perform deep and broad research using 100+ tools |
 | `YutoriScoutingTool` | `BaseTool` | Create and manage recurring web monitors with Scouts |
@@ -43,16 +43,16 @@ Get your API key at [platform.yutori.com](https://platform.yutori.com).
 
 ## Usage
 
-### ChatYutoriN1
+### ChatYutoriNavigator
 
-n1 is Yutori's pixels-to-actions LLM for browser navigation. It accepts screenshots and returns browser actions (click, type, scroll, etc.).
+Navigator is Yutori's pixels-to-actions LLM for browser navigation. It accepts screenshots and returns browser actions (click, type, scroll, etc.). The current version is **n1.5** (the default); older versions like n1 remain selectable via the `model` argument.
 
 ```python
-from langchain_yutori import ChatYutoriN1
+from langchain_yutori import ChatYutoriNavigator
 from langchain_core.messages import HumanMessage
-from yutori.n1 import aplaywright_screenshot_to_data_url
+from yutori.navigator import aplaywright_screenshot_to_data_url
 
-llm = ChatYutoriN1()  # uses YUTORI_API_KEY env var
+llm = ChatYutoriNavigator()  # defaults to n1.5-latest, uses YUTORI_API_KEY env var
 image_url = await aplaywright_screenshot_to_data_url(page)
 
 message = HumanMessage(content=[
@@ -63,24 +63,32 @@ response = llm.invoke([message])
 # Returns tool_calls with browser actions
 ```
 
-With Playwright, use the SDK helper so the image is captured with the SDK's default JPEG capture
-settings and encoded to a WebP data URL optimized for n1.
-
-`ChatYutoriN1` accepts image URLs but does not capture or preprocess screenshots itself, so if you
-are using Playwright you should call the SDK helper directly before passing the image into LangChain.
-
-If you execute returned browser actions yourself, n1 coordinates are normalized to a `1000x1000`
-space. Convert them back into viewport pixels with the SDK helper:
+To pin to a specific Navigator version:
 
 ```python
-from yutori.n1 import denormalize_coordinates
+llm = ChatYutoriNavigator(model="n1-latest")     # older Navigator n1
+llm = ChatYutoriNavigator(model="n1.5-latest")   # current Navigator n1.5 (default)
+```
+
+With Playwright, use the SDK helper so the image is captured with the SDK's default JPEG capture
+settings and encoded to a WebP data URL optimized for Navigator.
+
+`ChatYutoriNavigator` accepts image URLs but does not capture or preprocess screenshots itself, so
+if you are using Playwright you should call the SDK helper directly before passing the image into
+LangChain.
+
+If you execute returned browser actions yourself, Navigator coordinates are normalized to a
+`1000x1000` space. Convert them back into viewport pixels with the SDK helper:
+
+```python
+from yutori.navigator import denormalize_coordinates
 
 coords = [500, 250]
 x, y = denormalize_coordinates(coords, width=1280, height=800)
 await page.mouse.click(x, y)
 ```
 
-For the full n1 input requirements and action schema, see the Yutori docs: https://docs.yutori.com
+For the full Navigator input requirements and action schema, see the Yutori docs: https://docs.yutori.com/llm-quickstart
 
 ### YutoriBrowsingTool
 

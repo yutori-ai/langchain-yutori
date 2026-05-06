@@ -5,26 +5,31 @@ from typing import Any
 
 from langchain_openai import ChatOpenAI
 from yutori.auth.credentials import resolve_api_key
+from yutori.navigator import N1_5_MODEL
 
 
-class ChatYutoriN1(ChatOpenAI):
-    """LangChain ChatModel wrapping the Yutori n1 browser navigation model.
+class ChatYutoriNavigator(ChatOpenAI):
+    """LangChain ChatModel wrapping Yutori's Navigator browser-control model.
 
-    n1 is a pixels-to-actions LLM that processes screenshots and predicts
-    browser actions (click, type, scroll, etc.). It uses the OpenAI Chat
-    Completions interface, so it plugs into LangChain's OpenAI-compatible
-    chat model stack.
+    Navigator is Yutori's pixels-to-actions LLM for browser navigation. It
+    accepts screenshots and predicts the next browser action (click, type,
+    scroll, etc.). The current version is n1.5; older versions like n1 remain
+    selectable via the ``model`` argument.
 
-    Authentication uses the ``YUTORI_API_KEY`` environment variable or the
-    ``api_key`` constructor argument.
+    Navigator uses the OpenAI Chat Completions interface, so it plugs into
+    LangChain's OpenAI-compatible chat model stack.
+
+    Authentication uses the ``YUTORI_API_KEY`` environment variable, the
+    credentials saved by ``yutori auth login``, or the ``api_key`` constructor
+    argument.
 
     Example::
 
-        from langchain_yutori import ChatYutoriN1
+        from langchain_yutori import ChatYutoriNavigator
         from langchain_core.messages import HumanMessage
-        from yutori.n1 import aplaywright_screenshot_to_data_url
+        from yutori.navigator import aplaywright_screenshot_to_data_url
 
-        llm = ChatYutoriN1(api_key="yt-...")
+        llm = ChatYutoriNavigator()  # defaults to n1.5-latest
         image_url = await aplaywright_screenshot_to_data_url(page)
 
         message = HumanMessage(content=[
@@ -32,6 +37,10 @@ class ChatYutoriN1(ChatOpenAI):
             {"type": "text", "text": "What action should I take next?"},
         ])
         response = llm.invoke([message])
+
+    To pin to a specific Navigator version (e.g. the older n1)::
+
+        llm = ChatYutoriNavigator(model="n1-latest")
     """
 
     @classmethod
@@ -43,7 +52,7 @@ class ChatYutoriN1(ChatOpenAI):
         self,
         *,
         api_key: str | None = None,
-        model: str = "n1-latest",
+        model: str = N1_5_MODEL,
         base_url: str = "https://api.yutori.com/v1",
         **kwargs: Any,
     ) -> None:

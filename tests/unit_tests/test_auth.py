@@ -1,11 +1,11 @@
 import pytest
 
-from langchain_yutori import ChatYutoriN1, YutoriBrowsingTool, YutoriResearchTool, YutoriScoutingTool
+from langchain_yutori import ChatYutoriNavigator, YutoriBrowsingTool, YutoriResearchTool, YutoriScoutingTool
 
 
 def test_chat_model_uses_sdk_auth_resolution(monkeypatch):
-    monkeypatch.setattr("langchain_yutori.chat_models.resolve_api_key", lambda _: "yt_from_config")
-    model = ChatYutoriN1()
+    monkeypatch.setattr("langchain_yutori.navigator.resolve_api_key", lambda _: "yt_from_config")
+    model = ChatYutoriNavigator()
     assert model.openai_api_key.get_secret_value() == "yt_from_config"
 
 

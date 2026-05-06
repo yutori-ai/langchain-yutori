@@ -5,7 +5,7 @@ import json
 
 from langchain_core.messages import HumanMessage
 
-from langchain_yutori import ChatYutoriN1, YutoriBrowsingTool, YutoriResearchTool, YutoriScoutingTool
+from langchain_yutori import ChatYutoriNavigator, YutoriBrowsingTool, YutoriResearchTool, YutoriScoutingTool
 
 
 def run_chat_smoke() -> None:
@@ -18,7 +18,7 @@ def run_chat_smoke() -> None:
             {"type": "text", "text": "Briefly describe what page this is."},
         ]
     )
-    response = ChatYutoriN1().invoke([message])
+    response = ChatYutoriNavigator().invoke([message])
     print("chat:", response.content)
 
 

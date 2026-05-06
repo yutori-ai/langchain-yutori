@@ -1,10 +1,10 @@
 from openai.types.chat import ChatCompletion
 
-from langchain_yutori import ChatYutoriN1
+from langchain_yutori import ChatYutoriNavigator
 
 
 def test_chat_model_exposes_request_id_in_response_metadata():
-    model = ChatYutoriN1(api_key="yt_test")
+    model = ChatYutoriNavigator(api_key="yt_test")
     response = ChatCompletion.model_validate(
         {
             "id": "cmpl_123",
@@ -16,7 +16,7 @@ def test_chat_model_exposes_request_id_in_response_metadata():
                 }
             ],
             "created": 0,
-            "model": "n1-latest",
+            "model": "n1.5-latest",
             "object": "chat.completion",
             "usage": {
                 "prompt_tokens": 1,

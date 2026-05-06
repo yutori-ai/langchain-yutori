@@ -6,7 +6,7 @@ from langchain_core.messages import HumanMessage
 from yutori.exceptions import APIError
 
 from langchain_yutori import (
-    ChatYutoriN1,
+    ChatYutoriNavigator,
     YutoriBrowsingTool,
     YutoriResearchTool,
     YutoriScoutingTool,
@@ -31,7 +31,7 @@ def test_chat_model_smoke():
             {"type": "text", "text": "Briefly describe what page this is."},
         ]
     )
-    response = ChatYutoriN1().invoke([message])
+    response = ChatYutoriNavigator().invoke([message])
     assert response.content
 
 
@@ -51,7 +51,7 @@ def test_chat_model_image_action_smoke():
             },
         ]
     )
-    response = ChatYutoriN1().invoke([message])
+    response = ChatYutoriNavigator().invoke([message])
     assert response.tool_calls
     assert response.tool_calls[0]["name"] in {
         "left_click",
