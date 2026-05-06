@@ -46,8 +46,8 @@ class ChatYutoriNavigator(ChatOpenAI):
         image_url = await aplaywright_screenshot_to_data_url(page)
 
         message = HumanMessage(content=[
-            {"type": "image_url", "image_url": {"url": image_url}},
             {"type": "text", "text": "What action should I take next?"},
+            {"type": "image_url", "image_url": {"url": image_url}},
         ])
         response = llm.invoke([message])
 
@@ -89,7 +89,6 @@ class ChatYutoriNavigator(ChatOpenAI):
             model=model,
             openai_api_key=resolved_key,
             openai_api_base=base_url,
-            default_headers={"X-API-Key": resolved_key},
             **kwargs,
         )
 

@@ -56,8 +56,8 @@ llm = ChatYutoriNavigator()  # defaults to n1.5-latest, uses YUTORI_API_KEY env 
 image_url = await aplaywright_screenshot_to_data_url(page)
 
 message = HumanMessage(content=[
-    {"type": "image_url", "image_url": {"url": image_url}},
     {"type": "text", "text": "What is the next action to complete the task: 'Add item to cart'?"},
+    {"type": "image_url", "image_url": {"url": image_url}},
 ])
 response = llm.invoke([message])
 # Returns tool_calls with browser actions
