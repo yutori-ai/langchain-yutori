@@ -11,11 +11,11 @@ from langchain_yutori import ChatYutoriNavigator, YutoriBrowsingTool, YutoriRese
 def run_chat_smoke() -> None:
     message = HumanMessage(
         content=[
+            {"type": "text", "text": "Briefly describe what page this is."},
             {
                 "type": "image_url",
                 "image_url": {"url": "https://docs.yutori.com/assets/google_homepage_2024.jpg"},
             },
-            {"type": "text", "text": "Briefly describe what page this is."},
         ]
     )
     response = ChatYutoriNavigator().invoke([message])
