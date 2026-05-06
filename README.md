@@ -88,7 +88,71 @@ x, y = denormalize_coordinates(coords, width=1280, height=800)
 await page.mouse.click(x, y)
 ```
 
-For the full Navigator input requirements and action schema, see the Yutori docs: https://docs.yutori.com/llm-quickstart
+#### Tool sets and request options
+
+Navigator's available action set is server-side and version-tagged. Select it (and optionally
+disable specific actions) via first-class constructor params; they are forwarded to the OpenAI
+client's `extra_body`:
+
+```python
+llm = ChatYutoriNavigator(
+    tool_set="browser_tools_expanded-20260403",   # adds extract_elements, find, set_element_value, execute_js
+    disable_tools=["hold_key", "drag"],
+)
+```
+
+Other Navigator-specific request fields (e.g. `json_schema` for structured output) can be passed
+through `extra_body` directly — they're merged with the first-class params:
+
+```python
+llm = ChatYutoriNavigator(
+    tool_set="browser_tools_core-20260403",
+    extra_body={"json_schema": {"type": "object", "properties": {...}}},
+)
+```
+
+#### Multi-turn loop and message-history shape
+
+After Navigator returns `tool_calls`, you execute the action in your browser, capture a fresh
+screenshot, and feed the result back as a `ToolMessage` whose `content` is a multimodal list
+of `[text, image_url]`. Navigator requires the new screenshot inside the tool message — not in a
+separate `HumanMessage`:
+
+```python
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+from yutori.navigator import aplaywright_screenshot_to_data_url, denormalize_coordinates
+
+history = [
+    HumanMessage(content=[
+        {"type": "text", "text": "Search for Yutori on Google."},
+        {"type": "image_url", "image_url": {"url": await aplaywright_screenshot_to_data_url(page)}},
+    ])
+]
+
+while True:
+    response: AIMessage = llm.invoke(history)
+    history.append(response)
+    if not response.tool_calls:
+        break  # Navigator finished the task; response.content has the summary
+
+    for call in response.tool_calls:
+        result_text = await execute_in_browser(page, call)  # your code; use denormalize_coordinates etc.
+        history.append(ToolMessage(
+            tool_call_id=call["id"],
+            content=[
+                {"type": "text", "text": f"{result_text}\nCurrent URL: {page.url}"},
+                {"type": "image_url", "image_url": {"url": await aplaywright_screenshot_to_data_url(page)}},
+            ],
+        ))
+```
+
+Notes:
+- **Don't add a system message.** Navigator's docs recommend placing extra instructions in the first user message instead.
+- **Include `Current URL: ...`** in the tool result text — it improves grounding.
+- **Don't trim messages.** For long trajectories, use `yutori.navigator.create_trimmed` / `acreate_trimmed`, which drop only old screenshots while keeping the message structure intact.
+
+For the full Navigator input requirements and action schema, see the Yutori docs:
+https://docs.yutori.com/llm-quickstart and https://docs.yutori.com/reference/navigator
 
 ### YutoriBrowsingTool
 

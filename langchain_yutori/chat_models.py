@@ -12,12 +12,22 @@ class ChatYutoriNavigator(ChatOpenAI):
     """LangChain ChatModel wrapping Yutori's Navigator browser-control model.
 
     Navigator is Yutori's pixels-to-actions LLM for browser navigation. It
-    accepts screenshots and predicts the next browser action (click, type,
-    scroll, etc.). The current version is n1.5; older versions like n1 remain
-    selectable via the ``model`` argument.
+    accepts screenshots and returns ``tool_calls`` describing the next browser
+    action (click, type, scroll, etc.). The current version is n1.5; older
+    versions like n1 remain selectable via the ``model`` argument.
+
+    Executing the returned actions is the application's responsibility — this
+    class returns them as ``AIMessage.tool_calls`` and points users at the
+    Yutori SDK's execution helpers (``denormalize_coordinates``,
+    ``map_key_to_playwright``, etc.). Use ``YutoriBrowsingTool`` for the
+    turnkey hosted-browser path instead.
 
     Navigator uses the OpenAI Chat Completions interface, so it plugs into
-    LangChain's OpenAI-compatible chat model stack.
+    LangChain's OpenAI-compatible chat model stack. Navigator-specific request
+    knobs (``tool_set``, ``disable_tools``) are first-class constructor
+    parameters; they are forwarded into the OpenAI client's ``extra_body``.
+    Any other Navigator-only fields can still be passed via ``extra_body``
+    directly.
 
     Authentication uses the ``YUTORI_API_KEY`` environment variable, the
     credentials saved by ``yutori auth login``, or the ``api_key`` constructor
@@ -29,7 +39,10 @@ class ChatYutoriNavigator(ChatOpenAI):
         from langchain_core.messages import HumanMessage
         from yutori.navigator import aplaywright_screenshot_to_data_url
 
-        llm = ChatYutoriNavigator()  # defaults to n1.5-latest
+        llm = ChatYutoriNavigator(
+            tool_set="browser_tools_expanded-20260403",
+            disable_tools=["hold_key", "drag"],
+        )
         image_url = await aplaywright_screenshot_to_data_url(page)
 
         message = HumanMessage(content=[
@@ -54,6 +67,8 @@ class ChatYutoriNavigator(ChatOpenAI):
         api_key: str | None = None,
         model: str = N1_5_MODEL,
         base_url: str = "https://api.yutori.com/v1",
+        tool_set: str | None = None,
+        disable_tools: list[str] | None = None,
         **kwargs: Any,
     ) -> None:
         resolved_key = resolve_api_key(api_key or os.environ.get("YUTORI_API_KEY"))
@@ -61,6 +76,15 @@ class ChatYutoriNavigator(ChatOpenAI):
             raise ValueError(
                 "No API key provided. Set YUTORI_API_KEY, run 'yutori auth login', or pass api_key explicitly."
             )
+
+        extra_body = dict(kwargs.pop("extra_body", None) or {})
+        if tool_set is not None:
+            extra_body["tool_set"] = tool_set
+        if disable_tools is not None:
+            extra_body["disable_tools"] = list(disable_tools)
+        if extra_body:
+            kwargs["extra_body"] = extra_body
+
         super().__init__(
             model=model,
             openai_api_key=resolved_key,
