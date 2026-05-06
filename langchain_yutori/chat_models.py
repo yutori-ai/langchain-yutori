@@ -3,9 +3,62 @@ from __future__ import annotations
 import os
 from typing import Any
 
+from langchain_core.messages import BaseMessage
 from langchain_openai import ChatOpenAI
 from yutori.auth.credentials import resolve_api_key
 from yutori.navigator import N1_5_MODEL
+
+
+def trim_navigator_history(
+    messages: list[BaseMessage],
+    *,
+    keep_recent: int = 2,
+) -> list[BaseMessage]:
+    """Drop ``image_url`` content blocks from older messages while keeping
+    every message and its text intact.
+
+    Navigator's docs explicitly recommend never dropping messages but tolerate
+    dropping old screenshots: preserving the full message structure keeps
+    attribution accurate while old images consume context the newer
+    screenshot already supersedes. Apply this on the LangChain side before
+    each ``llm.invoke`` for long-running loops::
+
+        history = trim_navigator_history(history)
+        response = llm.invoke(history)
+
+    The input list and original ``BaseMessage`` instances are never mutated;
+    messages whose content was unchanged are returned by reference, and only
+    messages that lost an ``image_url`` block are reissued as fresh copies.
+
+    Args:
+        messages: LangChain message list, typically the running history of a
+            Navigator loop.
+        keep_recent: Number of most-recent messages whose images are kept
+            verbatim. Older messages have any ``image_url`` blocks removed
+            from their content. Defaults to ``2`` — usually the last
+            assistant turn plus its tool result.
+
+    Raises:
+        ValueError: if ``keep_recent`` is negative.
+    """
+    if keep_recent < 0:
+        raise ValueError("keep_recent must be >= 0")
+    cutoff = max(0, len(messages) - keep_recent)
+    out: list[BaseMessage] = []
+    for i, msg in enumerate(messages):
+        if i >= cutoff or not isinstance(msg.content, list):
+            out.append(msg)
+            continue
+        trimmed = [
+            block
+            for block in msg.content
+            if not (isinstance(block, dict) and block.get("type") == "image_url")
+        ]
+        if len(trimmed) == len(msg.content):
+            out.append(msg)
+        else:
+            out.append(msg.model_copy(update={"content": trimmed}))
+    return out
 
 
 class ChatYutoriNavigator(ChatOpenAI):

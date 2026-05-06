@@ -146,7 +146,15 @@ while True:
 Notes:
 - **Don't add a system message.** Navigator's docs recommend placing extra instructions in the first user message instead.
 - **Include `Current URL: ...`** in the tool result text — it improves grounding.
-- **Don't drop messages — only old screenshots.** For long trajectories, walk back through `history` and remove `image_url` blocks from older `HumanMessage` / `ToolMessage` content lists, keeping every message and its text intact. (The Yutori SDK exposes `trim_images_to_fit` and `trimmed_messages_to_fit` for its dict-shaped message arrays, plus a one-shot `create_trimmed` / `acreate_trimmed` that trims and calls the API directly — but those bypass LangChain, so for `llm.invoke(...)` flows do the trim yourself on the LangChain message list.)
+- **Don't drop messages — only old screenshots.** For long trajectories, use `trim_navigator_history` to drop `image_url` blocks from older messages while keeping every message and its text intact:
+
+  ```python
+  from langchain_yutori import trim_navigator_history
+
+  response = llm.invoke(trim_navigator_history(history))   # default keep_recent=2
+  ```
+
+  The Yutori SDK exposes equivalent helpers (`trim_images_to_fit`, `trimmed_messages_to_fit`, `create_trimmed` / `acreate_trimmed`) that operate on dict-shaped messages and bypass LangChain — use those if you call the SDK directly, otherwise prefer the LangChain helper above for `llm.invoke(...)` flows.
 
 For the full Navigator input requirements and action schema, see the Yutori docs:
 https://docs.yutori.com/llm-quickstart and https://docs.yutori.com/reference/navigator
