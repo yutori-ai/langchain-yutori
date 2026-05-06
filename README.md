@@ -34,7 +34,7 @@ This opens your browser and saves your API key locally for the SDK and this pack
 Or set your API key via environment variable:
 
 ```bash
-export YUTORI_API_KEY="yt-..."
+export YUTORI_API_KEY="yt_..."
 ```
 
 Or pass it directly to each class.
@@ -70,12 +70,9 @@ llm = ChatYutoriNavigator(model="n1-latest")     # older Navigator n1
 llm = ChatYutoriNavigator(model="n1.5-latest")   # current Navigator n1.5 (default)
 ```
 
-With Playwright, use the SDK helper so the image is captured with the SDK's default JPEG capture
-settings and encoded to a WebP data URL optimized for Navigator.
-
-`ChatYutoriNavigator` accepts image URLs but does not capture or preprocess screenshots itself, so
-if you are using Playwright you should call the SDK helper directly before passing the image into
-LangChain.
+With Playwright, use the SDK helper to capture the screenshot and re-encode it as a WebP data URL
+at the resolution Navigator was trained on (1280×800, q90). `ChatYutoriNavigator` accepts image
+URLs but doesn't capture or preprocess screenshots itself.
 
 If you execute returned browser actions yourself, Navigator coordinates are normalized to a
 `1000x1000` space. Convert them back into viewport pixels with the SDK helper:
@@ -149,7 +146,7 @@ while True:
 Notes:
 - **Don't add a system message.** Navigator's docs recommend placing extra instructions in the first user message instead.
 - **Include `Current URL: ...`** in the tool result text — it improves grounding.
-- **Don't trim messages.** For long trajectories, use `yutori.navigator.create_trimmed` / `acreate_trimmed`, which drop only old screenshots while keeping the message structure intact.
+- **Don't drop messages — only old screenshots.** For long trajectories, walk back through `history` and remove `image_url` blocks from older `HumanMessage` / `ToolMessage` content lists, keeping every message and its text intact. (The Yutori SDK exposes `trim_images_to_fit` and `trimmed_messages_to_fit` for its dict-shaped message arrays, plus a one-shot `create_trimmed` / `acreate_trimmed` that trims and calls the API directly — but those bypass LangChain, so for `llm.invoke(...)` flows do the trim yourself on the LangChain message list.)
 
 For the full Navigator input requirements and action schema, see the Yutori docs:
 https://docs.yutori.com/llm-quickstart and https://docs.yutori.com/reference/navigator
@@ -246,7 +243,7 @@ Browsing and Research tools accept `poll_interval` (seconds between status check
 
 ```python
 tool = YutoriBrowsingTool(
-    api_key="yt-...",
+    api_key="yt_...",
     poll_interval=10.0,
     timeout=300.0,
 )
