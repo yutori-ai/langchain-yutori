@@ -116,7 +116,8 @@ of `[text, image_url]`. Navigator requires the new screenshot inside the tool me
 separate `HumanMessage`:
 
 ```python
-from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_yutori import navigator_tool_result, trim_navigator_history
 from yutori.navigator import aplaywright_screenshot_to_data_url, denormalize_coordinates
 
 history = [
@@ -127,19 +128,22 @@ history = [
 ]
 
 while True:
-    response: AIMessage = llm.invoke(history)
+    response: AIMessage = llm.invoke(trim_navigator_history(history))
     history.append(response)
     if not response.tool_calls:
         break  # Navigator finished the task; response.content has the summary
 
-    for call in response.tool_calls:
+    last_idx = len(response.tool_calls) - 1
+    for i, call in enumerate(response.tool_calls):
         result_text = await execute_in_browser(page, call)  # your code; use denormalize_coordinates etc.
-        history.append(ToolMessage(
+        history.append(navigator_tool_result(
             tool_call_id=call["id"],
-            content=[
-                {"type": "text", "text": f"{result_text}\nCurrent URL: {page.url}"},
-                {"type": "image_url", "image_url": {"url": await aplaywright_screenshot_to_data_url(page)}},
-            ],
+            result_text=result_text,
+            current_url=page.url,
+            # only the last result in a batched turn carries the next screenshot
+            screenshot_data_url=(
+                await aplaywright_screenshot_to_data_url(page) if i == last_idx else None
+            ),
         ))
 ```
 

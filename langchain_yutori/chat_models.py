@@ -3,10 +3,59 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import BaseMessage, ToolMessage
 from langchain_openai import ChatOpenAI
 from yutori.auth.credentials import resolve_api_key
 from yutori.navigator import N1_5_MODEL
+
+
+def navigator_tool_result(
+    *,
+    tool_call_id: str,
+    result_text: str,
+    current_url: str,
+    screenshot_data_url: str | None = None,
+) -> ToolMessage:
+    """Construct a ``ToolMessage`` in the shape Navigator expects for an
+    action result.
+
+    Codifies three Navigator conventions in a single typed call so users
+    can't drift from them:
+
+    1. The screenshot for the next turn lives **inside** the tool message,
+       not in a separate ``HumanMessage``.
+    2. The result text is suffixed with ``"Current URL: <url>"`` for
+       grounding (Navigator's docs note this is load-bearing for
+       attribution).
+    3. Content blocks are ordered ``[text, image_url]``, matching the docs
+       example and what Navigator was trained on.
+
+    When Navigator returns multiple ``tool_calls`` in a single turn, only
+    the **last** tool result needs the post-action screenshot — pass
+    ``screenshot_data_url=None`` for intermediate results in a batched
+    response (per Navigator's docs).
+
+    Args:
+        tool_call_id: ID of the assistant ``tool_call`` this result answers.
+        result_text: Short description of what executing the action did,
+            e.g. ``"Clicked 1x with left"`` or ``"Typed 'Yutori'"``.
+        current_url: The browser's URL after the action completed. Always
+            include this; the convention exists for grounding even when
+            the URL didn't change.
+        screenshot_data_url: WebP data URL of the post-action screenshot.
+            Provide for the last (or only) tool result in a turn; omit
+            for intermediate results in a batched response.
+
+    Returns:
+        A ``ToolMessage`` with content shaped exactly as Navigator's
+        reference documents.
+    """
+    content: list[dict[str, Any]] = [
+        {"type": "text", "text": f"{result_text}\nCurrent URL: {current_url}"},
+    ]
+    if screenshot_data_url is not None:
+        content.append({"type": "image_url", "image_url": {"url": screenshot_data_url}})
+    return ToolMessage(tool_call_id=tool_call_id, content=content)
 
 
 def trim_navigator_history(
