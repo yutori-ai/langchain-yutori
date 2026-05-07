@@ -5,20 +5,20 @@ import json
 
 from langchain_core.messages import HumanMessage
 
-from langchain_yutori import ChatYutoriN1, YutoriBrowsingTool, YutoriResearchTool, YutoriScoutingTool
+from langchain_yutori import ChatYutoriNavigator, YutoriBrowsingTool, YutoriResearchTool, YutoriScoutingTool
 
 
 def run_chat_smoke() -> None:
     message = HumanMessage(
         content=[
+            {"type": "text", "text": "Briefly describe what page this is."},
             {
                 "type": "image_url",
                 "image_url": {"url": "https://docs.yutori.com/assets/google_homepage_2024.jpg"},
             },
-            {"type": "text", "text": "Briefly describe what page this is."},
         ]
     )
-    response = ChatYutoriN1().invoke([message])
+    response = ChatYutoriNavigator().invoke([message])
     print("chat:", response.content)
 
 

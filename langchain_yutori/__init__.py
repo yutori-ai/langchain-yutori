@@ -1,11 +1,17 @@
-from langchain_yutori.chat_models import ChatYutoriN1
+from langchain_yutori.chat_models import (
+    ChatYutoriNavigator,
+    navigator_tool_result,
+    trim_navigator_history,
+)
 from langchain_yutori.tools import YutoriBrowsingTool, YutoriResearchTool, YutoriScoutingTool
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 __all__ = [
-    "ChatYutoriN1",
+    "ChatYutoriNavigator",
     "YutoriBrowsingTool",
     "YutoriResearchTool",
     "YutoriScoutingTool",
+    "navigator_tool_result",
+    "trim_navigator_history",
 ]

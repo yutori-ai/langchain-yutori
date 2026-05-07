@@ -1,6 +1,6 @@
 import pytest
 
-from langchain_yutori import ChatYutoriN1
+from langchain_yutori import ChatYutoriNavigator
 
 try:
     from langchain_tests.unit_tests import ChatModelUnitTests
@@ -8,14 +8,14 @@ except ImportError:
     pytest.skip("langchain-tests is not installed in this environment", allow_module_level=True)
 
 
-class TestChatYutoriN1Standard(ChatModelUnitTests):
+class TestChatYutoriNavigatorStandard(ChatModelUnitTests):
     @property
     def chat_model_class(self):
-        return ChatYutoriN1
+        return ChatYutoriNavigator
 
     @property
     def chat_model_params(self) -> dict:
-        return {"api_key": "yt_test", "model": "n1-latest"}
+        return {"api_key": "yt_test", "model": "n1.5-latest"}
 
     @property
     def init_from_env_params(self):
